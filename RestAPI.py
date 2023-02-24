@@ -40,7 +40,7 @@ def add_snowboard():
 @app.route('/api/snowboard', methods=['PUT']) # API to delete snowboard http://127.0.0.1:5000/api/snowboard
 def update_snowboards():
     request_data = request.get_json()
-     = request_data['id']
+    request_data['id']
 
 
 @app.route('/api/snowboard', methods=['DELETE']) # API to delete snowboard http://127.0.0.1:5000/api/snowboard
