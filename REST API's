@@ -1,0 +1,65 @@
+import flask
+from flask import jsonify
+from flask import request
+from ConCreate import create_connection
+from ConCreate import execute_read_query
+from ConCreate import execute_query
+import CredS
+
+app = flask.Flask(__name__) #sets up the application
+app.config["DEBUG"] = True #to show errors in browser
+
+
+@app.route('/api/snowboard/all') #This getting all of the values from the SQL Table http://127.0.0.1:5000/api/snowboard/all
+def api_all():
+    myCreds = CredS.Creds()
+    conn = create_connection(myCreds.conString, myCreds.userName, myCreds.password, myCreds.dbName)
+    select_boards = "SELECT * FROM snowboard"
+    snowboard = execute_read_query(conn, select_boards)
+    return jsonify(snowboard)
+
+@app.route('/api/snowboard', methods = ['POST']) #method to load new data into the SQL Database http://127.0.0.1:5000/api/snowboard
+def add_snowboard():
+    request_data = request.get_json()
+    id = request_data['id']
+    newtype = request_data['boardtype']
+    newbrand = request_data['brand']
+    newmsrp = request_data['msrp']
+    newsize = request_data['size']
+
+    myCreds = CredS.Creds()
+    conn = create_connection(myCreds.conString, myCreds.userName, myCreds.password, myCreds.dbName)
+    
+    insert_board = "INSERT INTO snowboard(id, boardtype, brand, msrp, size) VALUES (%s,'%s','%s', %s, %s)" % (id, newtype, newbrand, newmsrp, newsize)
+    execute_query(conn, insert_board)
+
+    return "success"
+
+
+@app.route('/api/snowboard', methods=['DELETE']) #API to delete snowboard http://127.0.0.1:5000/api/snowboard
+def delete_snowboards():
+    request_data = request.get_json()
+    idToDelete = request_data['id']
+
+    myCreds = CredS.Creds()
+    conn = create_connection(myCreds.conString, myCreds.userName, myCreds.password, myCreds.dbName)
+    delete_snowboards = 'DELETE FROM snowboard WHERE id = %s' % (idToDelete)
+    execute_query(conn, delete_snowboards)
+    return "Deleted Successfully"
+
+@app.route('/api/snowboard', methods = ['PUT']) #API to update existing rows change price by ID http://127.0.0.1:5000/api/snowboard
+def update_snowboard():
+    request_data = request.get_json()
+    priceToUpdate = request_data['msrp']
+    idToUpdate = request_data['id']
+
+
+    myCreds = CredS.Creds()
+    conn = create_connection(myCreds.conString, myCreds.userName, myCreds.password, myCreds.dbName)
+    update_board = "UPDATE snowboard SET msrp=%s WHERE id=%s " % (priceToUpdate, idToUpdate)
+    execute_query(conn, update_board)
+
+    return 'Snowboard Updated' # return statement if correct
+
+    
+app.run()
